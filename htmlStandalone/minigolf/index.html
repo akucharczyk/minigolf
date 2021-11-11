@@ -1,0 +1,237 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Minigolf.io</title>
+  <link rel="stylesheet" href="./index.css">
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+
+  <script src="https://unpkg.com/vue" ></script>
+</head>
+
+<body class="bg-192159">
+  <img class="fixed z-0 select-none top-0 left-0 h-1/2" src="./minigolf-corner.svg" alt="minigolf.io" />
+  <main>
+    <div>
+      <div class="md:hidden fixed top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2 font-extrabold text-white text-center text-2xl">
+        This application only work on Desktop devices
+      </div>
+      <div 
+        class="hidden md:inline fixed top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2 max-h-screen p-10 max-w-7xl overflow-x-auto overflow-y-auto"
+        :class="{
+          'transform scale-150': players.length < 2,
+        }"
+      >
+        <div class="flex border-b-4 border-b-white relative w-fit">
+          <div class="cursor-pointer w-48 h-48 flex flex-shrink-0 flex-col items-center justify-center text-white group hover:bg-white hover:bg-opacity-20 transition-colors">
+            <svg class="w-24 h-24 text-E51540 mb-3 group-hover:text-53B5D7 transition-colors" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="question" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path class="" fill="currentColor" d="M202.021 0C122.202 0 70.503 32.703 29.914 91.026c-7.363 10.58-5.093 25.086 5.178 32.874l43.138 32.709c10.373 7.865 25.132 6.026 33.253-4.148 25.049-31.381 43.63-49.449 82.757-49.449 30.764 0 68.816 19.799 68.816 49.631 0 22.552-18.617 34.134-48.993 51.164-35.423 19.86-82.299 44.576-82.299 106.405V320c0 13.255 10.745 24 24 24h72.471c13.255 0 24-10.745 24-24v-5.773c0-42.86 125.268-44.645 125.268-160.627C377.504 66.256 286.902 0 202.021 0zM192 373.459c-38.196 0-69.271 31.075-69.271 69.271 0 38.195 31.075 69.27 69.271 69.27s69.271-31.075 69.271-69.271-31.075-69.27-69.271-69.27z"></path></svg>
+            How to play?
+          </div>
+
+          <div
+            v-for="course, index in courses"
+            :key="course._id"
+            @click="activeGame(index)"
+            class="w-48 h-48 text-white relative p-3 flex flex-shrink-0 flex-col cursor-pointer shadow-md"
+            :class="index === activeGameIndex ? 'bg-53B5D7 border-r-8 border-l-8 border-25A942' : 'bg-E51540 opacity-70 hover:opacity-100 transition-opacity'"
+          >
+            <div
+              v-if="index === activeGameIndex"
+              class="absolute bg-25A942 h-10 -left-2 -right-2 -top-9 flex justify-center items-center z-50"
+            >
+              Playing
+            </div>
+            <div @click="removeCourse(index)" class="absolute right-0 top-1 h-5 w-5 flex items-center justify-center text-xs">
+              X
+            </div>
+            <div class="mx-auto text-center overflow-hidden overflow-ellipsis whitespace-nowrap font-bold">
+              {{ course.name }}
+            </div>
+            <div class="flex flex-1 justify-center items-center h-full">
+              <svg class="inline-block w-24 h-24" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="map" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path class="" fill="currentColor" d="M0 117.66v346.32c0 11.32 11.43 19.06 21.94 14.86L160 416V32L20.12 87.95A32.006 32.006 0 0 0 0 117.66zM192 416l192 64V96L192 32v384zM554.06 33.16L416 96v384l139.88-55.95A31.996 31.996 0 0 0 576 394.34V48.02c0-11.32-11.43-19.06-21.94-14.86z"></path></svg>
+            </div>
+            <div class="text-center">
+              Putts: 3.5
+            </div>
+          </div>
+
+          <Button
+            class="absolute top-1/2 -right-5 transform translate-x-1/2 -translate-y-1/2 -rotate-90 bg-E51540 w-48 h-10 text-center flex justify-center items-center text-white hover:opacity-80 cursor-pointer"
+            @click="addCourse()"
+          >
+            Add Course
+            <svg class="ml-2 inline-block w-5 h-5" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="plus" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path class="" fill="currentColor" d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"></path></svg>
+          </Button>
+        </div>
+        <div v-for="player, playerIndex in players" :key="player._id" class="flex relative border-b-4 border-b-white w-fit">
+          <div 
+            class="w-48 h-48 text-white relative p-3 flex flex-shrink-0 flex-col cursor-pointer bg-53B5D7 shadow-md"
+          >
+            <div 
+              v-if="players.length > 1 && winningPlayerId === player._id"
+              class="bg-25A942 text-white absolute w-full h-8 -left-4 top-1/2 z-index flex justify-center items-center transform -rotate-90 -translate-x-1/2 -translate-y-1/2"
+            >
+              Winning!
+            </div>
+            <div @click="removePlayer(playerIndex)" class="absolute right-0 top-0 h-5 w-5 flex items-center justify-center text-xs">
+              X
+            </div>
+            <div class="mx-auto text-center overflow-hidden overflow-ellipsis whitespace-nowrap font-bold">
+              {{ player.name }}
+            </div>
+            <div class="flex flex-1 justify-center items-center h-full">
+              <svg class="inline-block w-24 h-24" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="golf-ball" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 416 512"><path class="" fill="currentColor" d="M96 416h224c0 17.7-14.3 32-32 32h-16c-17.7 0-32 14.3-32 32v20c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-20c0-17.7-14.3-32-32-32h-16c-17.7 0-32-14.3-32-32zm320-208c0 74.2-39 139.2-97.5 176h-221C39 347.2 0 282.2 0 208 0 93.1 93.1 0 208 0s208 93.1 208 208zm-180.1 43.9c18.3 0 33.1-14.8 33.1-33.1 0-14.4-9.3-26.3-22.1-30.9 9.6 26.8-15.6 51.3-41.9 41.9 4.6 12.8 16.5 22.1 30.9 22.1zm49.1 46.9c0-14.4-9.3-26.3-22.1-30.9 9.6 26.8-15.6 51.3-41.9 41.9 4.6 12.8 16.5 22.1 30.9 22.1 18.3 0 33.1-14.9 33.1-33.1zm64-64c0-14.4-9.3-26.3-22.1-30.9 9.6 26.8-15.6 51.3-41.9 41.9 4.6 12.8 16.5 22.1 30.9 22.1 18.3 0 33.1-14.9 33.1-33.1z"></path></svg>
+            </div>
+            <div class="text-center">
+              {{ allPutts[player._id] || 0 }} Putts
+            </div>
+          </div>
+
+
+          <div
+            v-for="course, index in courses"
+            :key="course._id"
+            class="w-48 h-48 text-white relative p-3 flex flex-shrink-0 flex-col shadow-md bg-E51540"
+            :class="index === activeGameIndex 
+              ? 'border-r-8 border-l-8 border-25A942' 
+              : 'opacity-70 transition-opacity'
+            "
+          >
+            <div class="flex items-center justify-center h-full text-6xl relative select-none">
+              <svg 
+                v-if="index === activeGameIndex"
+                @click="addPutt(player._id, course._id)"
+                class="w-12 h-12 absolute top-5 hover-text-53B5D7 cursor-pointer" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="sort-up" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path class="" fill="currentColor" d="M279 224H41c-21.4 0-32.1-25.9-17-41L143 64c9.4-9.4 24.6-9.4 33.9 0l119 119c15.2 15.1 4.5 41-16.9 41z"></path></svg>
+                {{ putts[player._id][course._id] ?? 0 }}
+              <svg 
+              v-if="index === activeGameIndex"
+              @click="putts[player._id][course._id] > 0 && removePutt(player._id, course._id)"
+              :class="putts[player._id][course._id] < 1 && 'cursor-not-allowed'"
+              class="w-12 h-12 absolute absolute bottom-5 hover-text-53B5D7 cursor-pointer" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="sort-down" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path class="" fill="currentColor" d="M41 288h238c21.4 0 32.1 25.9 17 41L177 448c-9.4 9.4-24.6 9.4-33.9 0L24 329c-15.1-15.1-4.4-41 17-41z"></path></svg>
+            </div>
+            <div class="flex items-center justify-center">
+              Putts
+            </div>
+            <div v-if="playerIndex === players.length -1 && index === activeGameIndex" class="absolute -bottom-3 bg-25A942 h-5 -left-2 -right-2"></div>
+          </div>
+        </div>
+        <Button 
+          class="bg-53B5D7 w-48 h-10 text-center flex justify-center items-center text-white hover:opacity-80 cursor-pointer"
+          @click="addPlayer()"
+        >
+          Add Player
+          <svg class="ml-2 inline-block w-5 h-5" aria-hidden="true" focusable="false" data-prefix="fa" data-icon="plus" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path class="" fill="currentColor" d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"></path></svg>
+        </Button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const App = {
+      el: 'main',
+
+      data() {
+        return {
+          courses: [
+            { _id: 0, name: 'Course Name 1' }
+          ],
+          players: [
+            { _id: 0, name: 'Player 1' }
+          ],
+          activeGameIndex: 0,
+          winningPlayerId: 0,
+          putts: {
+            0: {}
+          },
+          allPutts: {
+            0: 0
+          }
+        }
+      },
+      watch: {
+        allPutts (allPutts) {
+          console.log(Object.values(allPutts).length)
+          console.log(this.players.length)
+          const index = Object.values(allPutts).indexOf(Math.min(...Object.values(allPutts)))
+
+          const winningIndex = index < 0 ? 0 : index
+
+          this.winningPlayerId = (this.players[winningIndex] || {})._id
+        }
+      },
+      methods: {
+        addCourse() {
+          this.courses.push({ 
+            _id: Math.floor(Math.random() * 99999), 
+            name: `Course Name ${this.courses.length + 1}`
+          })
+        },
+        addPlayer() {
+          const playerId = Math.floor(Math.random() * 99999)
+          
+          this.players.push({ 
+            _id: playerId,
+            name: `Player ${this.players.length + 1}`,
+          })
+
+          this.putts = {
+            ...this.putts,
+            [playerId]: {},
+          }
+
+          this.allPutts = {
+            ...this.allPutts,
+            [playerId]: 0,
+          }
+        },
+        activeGame(index) {
+          this.activeGameIndex = index
+        },
+        removeCourse(index) {
+          this.courses.splice(index, 1)
+        },
+        removePlayer(index) {
+          const playerId = this.players[index]._id
+          delete this.allPutts[playerId]
+          this.players.splice(index, 1)
+        },
+        addPutt(playerId, gameId) {
+          this.putts = {
+            ...this.putts,
+            [playerId]: {
+              ...this.putts[playerId],
+              [gameId]: (this.putts[playerId][gameId] || 0) + 1
+            }
+          }
+
+          this.allPutts = {
+            ...this.allPutts,
+            [playerId]: (this.allPutts[playerId] || 0) + 1
+          }
+        },
+        removePutt(playerId, gameId) {
+          this.putts = {
+            ...this.putts,
+            [playerId]: {
+              ...this.putts[playerId],
+              [gameId]: ((this.putts[playerId] ?? {})[gameId] || 0) - 1
+            }
+          }
+
+          this.allPutts = {
+            ...this.allPutts,
+            [playerId]: (this.allPutts[playerId] || 0) - 1
+          }
+        }
+      }
+    }
+
+
+    window.addEventListener('load', () => {
+      new Vue(App)
+    })
+  </script>
+</body>
+
+</html>

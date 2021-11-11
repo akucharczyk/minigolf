@@ -1,0 +1,39 @@
+* {
+  box-sizing: border-box;
+}
+
+.text-E51540 {
+  color: #E51540;
+}
+.bg-E51540 {
+  background: #E51540;
+}
+
+*.hover-text-53B5D7:hover,
+.text-53B5D7 {
+  color: #53B5D7;
+}
+
+.bg-53B5D7 {
+  background: #53B5D7;
+}
+
+.border-25A942 {
+  border-color: #25A942;
+}
+
+.bg-25A942 {
+  background: #25A942;
+}
+
+.bg-192159 {
+  background: #192159;
+}
+
+.w-fit {
+  width: fit-content;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
